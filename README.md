@@ -1,5 +1,10 @@
-# cpp-container-template
-Provides template for a cpp git repo with environment setup using devcontainer
+# C++ Hot Reload
+
+Library used to reload another dynamic library while application using it is still running.
+
+A potential use case could be:
+
+Change OpenCV image manipulation c++ code in realtime.
 
 ## Todo
 

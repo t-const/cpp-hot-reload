@@ -1,7 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-get_filename_component(ProjectId ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-string(REPLACE " " "_" ProjectId ${ProjectId})
-project(${ProjectId} VERSION 1.0 LANGUAGES CXX)
+project(HotReload VERSION 1.0 LANGUAGES CXX)
 SET(COMPONENT_NAME ${PROJECT_NAME})
 
 MESSAGE(STATUS "Creating project ${PROJECT_NAME} using component name ${COMPONENT_NAME}")
@@ -26,12 +24,22 @@ CreateLibrary(
    "${CMAKE_CURRENT_SOURCE_DIR}/src/"
 )
 
-# Uncomment and setup for lib dependencies
+set(testLibrary HotReloadTest)
+CreateLibrary(
+   ${testLibrary}
+   true
+   "${CMAKE_CURRENT_SOURCE_DIR}/HotReloadTest/"
+   "${CMAKE_CURRENT_SOURCE_DIR}/HotReloadTest/"
+)
+
 # Manage project dependencies
-# target_link_libraries(
-#     ${libraryName}
-#     PUBLIC
-# )
+target_link_libraries(
+    ${testLibrary}
+    PUBLIC
+    ${libraryName}
+)
+
+set_target_properties(${testLibrary} PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 # Create executable
 set(app ${PROJECT_NAME})
@@ -47,6 +55,7 @@ target_link_libraries(
     ${app}
     PRIVATE
         ${libraryName}
+        ${testLibrary}
 )
 
 # Add the tests subdirectory
