@@ -8,7 +8,17 @@ Change OpenCV image manipulation c++ code in realtime.
 
 ## Todo
 
-- [x] Create base template for cmake
-- [x] Create format file (clang / doxy)
-- [ ] Add unit tests
-- [ ] Add github actions
+- [ ] Add the unit test stuff from the tuto
+- [ ] Look on how to ease the process to maintin the public interface
+  - [ ] Manually specify methods metadata
+  - [ ] Manually specify function index
+  - [ ] Manually specify execute vs var
+- [ ] Add mechanisms of multi threading when lib is reloaded and lib functions are in uses
+- [ ] Add file watcher to reload lib when file is saved and is in lib (from vscode ?)
+
+## Next steps
+
+- [ ] Define necessary cmake files to include this to other projects
+- [ ] Add to another project
+  - [ ] Make sure project is minimal and easy to share/include
+- [ ] Support different config (windows)
