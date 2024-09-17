@@ -23,6 +23,11 @@ CreateLibrary(
    "${CMAKE_CURRENT_SOURCE_DIR}/include/"
    "${CMAKE_CURRENT_SOURCE_DIR}/src/"
 )
+target_link_libraries(
+   ${libraryName}
+   PRIVATE
+   dl
+)
 
 set(testLibrary HotReloadTest)
 CreateLibrary(
@@ -39,8 +44,6 @@ target_link_libraries(
     ${libraryName}
 )
 
-set_target_properties(${testLibrary} PROPERTIES POSITION_INDEPENDENT_CODE ON)
-
 # Create executable
 set(app ${PROJECT_NAME})
 
@@ -48,15 +51,22 @@ CreateExecutable(
    ${app}
    "${CMAKE_CURRENT_SOURCE_DIR}/app/src/"
    "${CMAKE_CURRENT_SOURCE_DIR}/app/include/"
-)
+   )
+target_link_libraries(${app} PRIVATE dl)
+target_compile_definitions(${app} PRIVATE $<$<CONFIG:Debug>:DEBUG>)
 
 # Manage project dependencies
 target_link_libraries(
     ${app}
     PRIVATE
         ${libraryName}
-        ${testLibrary}
 )
+
+# TODO make a target function to ease that process?
+target_include_directories(
+   ${app}
+   PRIVATE
+   "${CMAKE_CURRENT_SOURCE_DIR}/HotReloadTest")
 
 # Add the tests subdirectory
 add_subdirectory(tests)
