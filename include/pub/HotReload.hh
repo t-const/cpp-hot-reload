@@ -11,7 +11,11 @@
 template <typename E, std::size_t NumSymbols>
 class HotReloadModule
 {
+  using SymbolArray = std::array<std::pair<const char*, void*>, NumSymbols>;
+
   public:
+  HotReloadModule(SymbolArray& symbols) : m_symbols(symbols) {}
+
   static void LoadLibrary()
   {
     GetInstance().Load();
@@ -30,37 +34,21 @@ class HotReloadModule
 
   virtual const char* GetPath() const = 0;
 
-  virtual std::array<const char*, NumSymbols>& GetSymbolNames() const = 0;
-
-  template <typename Ret, typename... Args>
-  Ret Execute(const char* name, Args... args)
+  template <std::size_t index, typename Ret, typename... Args>
+  Ret Execute(Args... args)
   {
     // lookup the function address
-    auto symbol = m_symbols.find(name);
-    if(symbol != m_symbols.end())
-    {
-      // Cast the address to the appropriate function type and call it, forwarding all arguments
-      return reinterpret_cast<Ret (*)(Args...)>(symbol->second)(args...);
-    }
-    else
-    {
-      throw std::runtime_error(std::string("Function not found: ") + name);
-    }
+    static_assert(index >= 0 && index < NumSymbols, "Out of bounds symbol index");
+    auto [_, symbolHandle] = m_symbols[index];
+    return reinterpret_cast<Ret (*)(Args...)>(symbolHandle)(args...);
   }
 
-  template <typename T>
-  T* GetVar(const char* name)
+  template <std::size_t index, typename T>
+  T* GetVar()
   {
-    auto symbol = m_symbols.find(name);
-    if(symbol != m_symbols.end())
-    {
-      return static_cast<T*>(symbol->second);
-    }
-    else
-    {
-      // We didn't find the variable. Return an empty pointer
-      return nullptr;
-    }
+    static_assert(index >= 0 && index < NumSymbols, "Out of bounds symbol index");
+    auto [_, symbolName] = m_symbols[index];
+    return static_cast<T*>(symbolName);
   }
 
   private:
@@ -73,18 +61,18 @@ class HotReloadModule
   void Reload()
   {
     dlclose(m_libHandle);
-    m_symbols.clear();
+    // todo maybe clear array
     Load();
   }
 
   void LoadSymbols()
   {
-    for(const char* symbol : GetSymbolNames())
+    for(auto&& [symbolName, symbolHandle] : m_symbols)
     {
-      m_symbols[symbol] = dlsym(m_libHandle, symbol);
+      symbolHandle = dlsym(m_libHandle, symbolName);
     }
   }
 
   void* m_libHandle;
-  std::unordered_map<std::string, void*> m_symbols;
+  SymbolArray& m_symbols;
 };

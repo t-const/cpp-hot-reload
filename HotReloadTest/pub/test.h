@@ -9,15 +9,21 @@ extern "C"
   extern int bar;
 }
 
-std::array<const char*, 2> g_exports = {"foo", "bar"};
+std::array<std::pair<const char*, void*>, 2> g_exports =
+  {std::make_pair("foo", nullptr), std::make_pair("bar", nullptr)};
 
 class TestModule : public HotReloadModule<TestModule, g_exports.size()>
 {
   public:
+  TestModule()
+	: HotReloadModule(g_exports)
+  {
+  }
+
   static void Foo()
   {
     // Execute might throw, but we don't bother catching the exception here for brevity
-    GetInstance().Execute<void>("foo");
+    GetInstance().Execute<0, void>();
   }
 
   static int GetBar()
@@ -25,7 +31,7 @@ class TestModule : public HotReloadModule<TestModule, g_exports.size()>
     // decltype was a relatively new operator whe this tuto was made.
     // decltype(bar) resolves to int
     // Note that this function does not protect against retrieving nullptr
-    return *GetInstance().GetVar<decltype(bar)>("bar");
+    return *GetInstance().GetVar<1, decltype(bar)>();
   }
 
   protected:
@@ -36,10 +42,5 @@ class TestModule : public HotReloadModule<TestModule, g_exports.size()>
 #else
     return "../lib/libHotReloadTest.so";
 #endif
-  }
-
-  virtual std::array<const char*, g_exports.size()>& GetSymbolNames() const override
-  {
-    return g_exports;
   }
 };
